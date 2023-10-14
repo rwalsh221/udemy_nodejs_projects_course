@@ -1,12 +1,30 @@
-// MODULES
-// CommonJS, every file is module (by default)
-// Modules - Encapsulated code (only share minimum)
+// section 3: lesson 24
+const http = require('http');
 
-const names = require('./4-names');
-const sayHi = require('./5-utils');
-const data = require('./6-alternative-export');
-require('./7-mind-grenade');
-// console.log(data);
-// sayHi('susan');
-// sayHi(names.john);
-// sayHi(names.peter);
+const server = http.createServer((req, res) => {
+  //   console.log(req);
+  if (req.url === '/') {
+    res.write('<h1>');
+    res.write('HELLO FROM THE SERVER');
+    res.write('</h1>');
+    res.end();
+  } else if (req.url === '/about') {
+    res.write('<h1>');
+    res.write('HELLO FROM THE ABOUT ROUTE');
+    res.write('</h1>');
+    res.end();
+  } else {
+    res.write('<h1>');
+    res.write(`Ooops`);
+    res.write('</h1>');
+    res.write('<p>');
+    res.write('page not found');
+    res.write('</p>');
+    res.write('<a href="/">');
+    res.write('back home');
+    res.write('</a>');
+    res.end();
+  }
+});
+
+server.listen(5000);
