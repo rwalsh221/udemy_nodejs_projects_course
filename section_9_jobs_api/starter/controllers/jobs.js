@@ -1,13 +1,33 @@
 const JobModel = require('../models/Job');
 const { StatusCodes } = require('http-status-codes');
-const { BadRequestError, notFoundError } = require('../errors/index');
+const {
+  BadRequestError,
+  notFoundError,
+  NotFoundError,
+} = require('../errors/index');
 
 const getAllJobs = async (req, res) => {
-  res.send('get all jobs');
+  console.log('hello');
+  console.log(req.user.userId);
+  const jobs = await JobModel.find({ createdBy: req.user.userId }).sort(
+    'createdAt'
+  );
+  res.status(StatusCodes.OK).json({ count: jobs.length, data: jobs });
 };
 
-const getJob = async (rea, res) => {
-  res.send('get job');
+const getJob = async (req, res) => {
+  const {
+    user: { userId },
+    params: { id: jobId },
+  } = req;
+
+  const job = await JobModel.findOne({ _id: jobId, createdBy: userId });
+
+  if (!job) {
+    throw new NotFoundError(`No job with id: ${jobId}`);
+  }
+
+  res.status(StatusCodes.OK).json({ job });
 };
 
 const createJob = async (req, res) => {
@@ -17,11 +37,49 @@ const createJob = async (req, res) => {
 };
 
 const updateJob = async (req, res) => {
-  res.send('update job');
+  const {
+    body: { company, position },
+    user: { userId },
+    params: { id: jobId },
+  } = req;
+  console.log(req);
+
+  if (company === '' || position === '') {
+    throw new BadRequestError('Company or position fields cannot be empty');
+  }
+
+  const job = await JobModel.findOneAndUpdate(
+    {
+      _id: jobId,
+      createdBy: userId,
+    },
+    req.body,
+    { new: true, runValidators: true }
+  );
+
+  if (!job) {
+    throw new NotFoundError(`No job with id: ${jobId}`);
+  }
+
+  res.status(StatusCodes.OK).json({ job });
 };
 
 const deleteJob = async (req, res) => {
-  res.send('delete job');
+  const {
+    user: { userId },
+    params: { id: jobId },
+  } = req;
+
+  const job = await JobModel.findOneAndRemove({
+    _id: jobId,
+    createdBy: userId,
+  });
+
+  if (!job) {
+    throw new NotFoundError(`No job with id: ${jobId}`);
+  }
+
+  res.status(StatusCodes.OK).json({ msg: 'delete success' });
 };
 
 module.exports = {
